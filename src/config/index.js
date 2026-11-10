@@ -21,6 +21,7 @@ module.exports = {
     database: process.env.DB_NAME || 'expense_tracker',
     user: required('DB_USER'),
     password: process.env.DB_PASSWORD || '',
+    ssl: require('./ssl').dbSsl(),
   },
   paths: {
     root: ROOT,

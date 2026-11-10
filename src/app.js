@@ -14,7 +14,11 @@ const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(config.paths.root, 'views'));
-app.set('trust proxy', 'loopback');
+// Behind a hosting proxy (Render, Heroku...) trust the first hop so req.secure is
+// correct and the Secure session cookie is actually set. Override with TRUST_PROXY.
+app.set('trust proxy', process.env.TRUST_PROXY !== undefined
+  ? (/^\d+$/.test(process.env.TRUST_PROXY) ? Number(process.env.TRUST_PROXY) : process.env.TRUST_PROXY)
+  : (config.isProd ? 1 : 'loopback'));
 app.disable('x-powered-by');
 
 // ---------------------------------------------------------------- Security headers + CSP

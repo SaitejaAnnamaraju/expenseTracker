@@ -157,6 +157,30 @@ Open **http://localhost:3000** and sign in as `user1` / `p455w0rd`.
 | `npm run db:seed` | Re-create / reset the two test accounts |
 | `npm test` | End-to-end tests (server must be running) |
 
+## Deploying to Render
+
+`.env` is never committed, so Render needs every setting entered in its dashboard. Render does not host MySQL itself, so you also need a **hosted MySQL database**. Free options include Aiven for MySQL, TiDB Cloud Serverless and Railway.
+
+1. **Create a hosted MySQL database.** Note its host, port, database name, user and password, and download its **CA certificate** if one is provided.
+2. **Create the Render service.** Use **New → Blueprint** and choose this repo; `render.yaml` sets everything up. Or use **New → Web Service** with:
+   - Build command: `npm ci --omit=dev`
+   - Start command: `npm run start:render`
+   - Health check path: `/healthz`
+3. **Set the environment variables** under **Environment**:
+
+   | Key | Value |
+   |---|---|
+   | `NODE_ENV` | `production` |
+   | `SESSION_SECRET` | a long random string (the Blueprint generates one) |
+   | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | from your MySQL provider |
+   | `DB_SSL` | `true` |
+   | `DB_SSL_CA` | the provider's CA certificate (paste the full PEM text) |
+
+   Do **not** set `DB_ROOT_USER` on Render.
+4. **Deploy.** `start:render` creates the tables in `DB_NAME`, then seeds `user1` and `manager1`, then starts the server.
+
+> **Note:** Render's free plan has an ephemeral disk, so uploaded receipts and avatars are lost on every redeploy or restart. Expense records in MySQL are kept. For permanent files, attach a Render Disk (paid) mounted at `/opt/render/project/src/storage`, or move uploads to object storage.
+
 ## Testing
 
 ### Automated

@@ -23,6 +23,7 @@ async function seed() {
     database: process.env.DB_NAME || 'expense_tracker',
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
+    ssl: require('../src/config/ssl').dbSsl(),
   });
   try {
     for (const a of ACCOUNTS) {
