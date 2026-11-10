@@ -1,0 +1,110 @@
+<%- include('partials/app-start') %>
+<%
+  const u = currentUser;
+  const initials = (u.display_name || u.username).split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const err = (bag, k) => bag[k] ? `<p class="error-text"><i data-lucide="circle-alert" class="icon icon-xs"></i>${esc(bag[k])}</p>` : '';
+  const memberSince = new Date(u.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+%>
+<div class="page-head">
+  <div>
+    <h1>Profile settings</h1>
+    <p>Manage how you appear and keep your account secure.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="profile-hero">
+      <span class="avatar avatar-xl" id="avatar-large">
+        <% if (u.avatar_path) { %><img src="/profile/avatar?v=<%= encodeURIComponent(u.avatar_path) %>" alt="Profile picture"><% } else { %><%= initials %><% } %>
+      </span>
+      <div class="info">
+        <h2><%= u.display_name %></h2>
+        <p>@<%= u.username %> · <%= u.email || 'No email on file' %></p>
+        <div class="inline-actions mt-sm">
+          <span class="badge badge-accent"><i data-lucide="<%= u.role === 'manager' ? 'briefcase' : 'user' %>" class="icon icon-xs"></i><%= u.role === 'manager' ? 'Manager' : 'Employee' %></span>
+          <span class="badge"><i data-lucide="calendar" class="icon icon-xs"></i>Member since <%= memberSince %></span>
+          <% if (expenseCount !== null && expenseCount !== undefined) { %><span class="badge"><i data-lucide="receipt" class="icon icon-xs"></i><%= expenseCount %> expense<%= expenseCount === 1 ? '' : 's' %> submitted</span><% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+
+    <!-- Profile picture -->
+    <div class="settings-row">
+      <div class="desc"><h3>Profile picture</h3><p>JPG, PNG or WebP, up to 2 MB. Shown in the sidebar.</p></div>
+      <div class="stack">
+        <div class="inline-actions">
+          <input type="file" id="avatar-input" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="sr-only">
+          <button type="button" class="btn" id="avatar-btn" data-loading-text="Uploading…"><span class="spinner"></span><i data-lucide="image-up" class="icon icon-sm btn-icon-default"></i><span class="btn-label">Upload new picture</span></button>
+          <% if (u.avatar_path) { %>
+            <form method="post" action="/profile/avatar/delete" data-confirm="Remove profile picture?" data-confirm-text="Your initials will be shown instead." data-confirm-ok="Remove" data-confirm-danger>
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button type="submit" class="btn btn-ghost"><i data-lucide="trash-2" class="icon icon-sm"></i>Remove</button>
+            </form>
+          <% } %>
+        </div>
+        <p class="error-text" id="avatar-error" hidden></p>
+      </div>
+    </div>
+
+    <!-- Username / display name -->
+    <form class="settings-row" method="post" action="/profile" novalidate data-validate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="desc"><h3>Personal details</h3><p>Your username is permanent because it identifies your submitted expenses.</p></div>
+      <div class="stack">
+        <div class="field">
+          <label for="username">Username</label>
+          <div class="input-group"><i data-lucide="at-sign" class="icon icon-sm lead-icon"></i><input class="input" id="username" value="<%= u.username %>" readonly disabled></div>
+        </div>
+        <div class="field">
+          <label for="display_name">Display name</label>
+          <input class="input <%= errors.display_name ? 'invalid' : '' %>" id="display_name" name="display_name" required minlength="2" maxlength="100" value="<%= values.display_name !== undefined ? values.display_name : u.display_name %>">
+          <%- err(errors, 'display_name') %>
+        </div>
+        <div><button class="btn btn-primary" type="submit" data-loading-text="Saving…"><span class="spinner"></span><span class="btn-label">Save changes</span></button></div>
+      </div>
+    </form>
+
+    <!-- Password -->
+    <form class="settings-row" method="post" action="/profile/password" novalidate data-validate id="password-form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="desc"><h3>Change password</h3><p>Use at least 8 characters with a letter and a number. Other devices will be signed out.</p></div>
+      <div class="stack">
+        <div class="field">
+          <label for="current_password">Current password</label>
+          <div class="input-group">
+            <input class="input has-toggle <%= pwErrors.current_password ? 'invalid' : '' %>" id="current_password" name="current_password" type="password" autocomplete="current-password" required>
+            <button type="button" class="toggle-pw" data-toggle-password="current_password" aria-label="Show password" aria-pressed="false"><i data-lucide="eye" class="icon icon-sm"></i></button>
+          </div>
+          <%- err(pwErrors, 'current_password') %>
+        </div>
+        <div class="field">
+          <label for="new_password">New password</label>
+          <div class="input-group">
+            <input class="input has-toggle <%= pwErrors.new_password ? 'invalid' : '' %>" id="new_password" name="new_password" type="password" autocomplete="new-password" required minlength="8" maxlength="128" data-strength="pw-meter">
+            <button type="button" class="toggle-pw" data-toggle-password="new_password" aria-label="Show password" aria-pressed="false"><i data-lucide="eye" class="icon icon-sm"></i></button>
+          </div>
+          <div class="pw-meter" aria-hidden="true"><span id="pw-meter"></span></div>
+          <%- err(pwErrors, 'new_password') %>
+        </div>
+        <div class="field">
+          <label for="confirm_password">Confirm new password</label>
+          <div class="input-group">
+            <input class="input has-toggle <%= pwErrors.confirm_password ? 'invalid' : '' %>" id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required data-match="new_password">
+            <button type="button" class="toggle-pw" data-toggle-password="confirm_password" aria-label="Show password" aria-pressed="false"><i data-lucide="eye" class="icon icon-sm"></i></button>
+          </div>
+          <%- err(pwErrors, 'confirm_password') %>
+        </div>
+        <div><button class="btn btn-primary" type="submit" data-loading-text="Updating…"><span class="spinner"></span><span class="btn-label">Update password</span></button></div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/app-end', { scripts: ['/static/js/profile.js'] }) %>

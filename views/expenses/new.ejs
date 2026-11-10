@@ -1,0 +1,160 @@
+<%- include('../partials/app-start') %>
+
+<div class="page-head">
+  <div>
+    <h1>Add Expense</h1>
+    <p>Record a business expense and attach the scanned receipt. Fields marked <span class="req">*</span> are required.</p>
+  </div>
+</div>
+
+<form id="expense-form" class="form-layout" novalidate
+      data-max-bytes="<%= maxUploadMb * 1024 * 1024 %>"
+      data-receipt-required="<%= receiptRequired ? '1' : '0' %>"
+      data-max-amount="<%= maxAmount %>">
+  <input type="hidden" name="form_token" id="form_token" value="<%= formToken %>">
+
+  <div class="card">
+    <div class="card-body">
+      <div class="form-section-title"><span class="n">1</span><h2>Expense details</h2></div>
+
+      <div class="alert alert-error" id="form-alert" role="alert" hidden><i data-lucide="circle-alert" class="icon icon-sm"></i><span id="form-alert-text"></span></div>
+
+      <div class="form-grid">
+        <!-- A. Expense date -->
+        <div class="field">
+          <label for="expense_date">Expense date <span class="req">*</span></label>
+          <div class="input-group">
+            <input class="input" type="date" id="expense_date" name="expense_date" required
+                   value="<%= today %>" max="<%= today %>" min="<%= minDate %>" data-testid="expense-date">
+          </div>
+          <p class="hint">Defaults to today. Earlier dates are allowed; future dates are not.</p>
+          <p class="error-text" data-error-for="expense_date" hidden></p>
+        </div>
+
+        <!-- B. Category -->
+        <div class="field">
+          <label for="category">Category <span class="req">*</span></label>
+          <select class="select" id="category" name="category" required data-testid="category">
+            <option value="" selected disabled>Select a category</option>
+            <% categories.forEach(c => { %><option value="<%= c %>"><%= c %></option><% }) %>
+          </select>
+          <p class="hint">Travel, Food &amp; Drink, Accommodation or Other.</p>
+          <p class="error-text" data-error-for="category" hidden></p>
+        </div>
+
+        <!-- C. Label -->
+        <div class="field">
+          <div class="md-head"><label for="label">Expense label <span class="req">*</span></label><span class="counter" data-counter-for="label">0 / 120</span></div>
+          <input class="input" id="label" name="label" required maxlength="120" autocomplete="off"
+                 placeholder="e.g. Client lunch" data-testid="label" list="label-suggestions">
+          <datalist id="label-suggestions">
+            <option value="Business meeting travel"><option value="Client lunch"><option value="Hotel accommodation"><option value="Office supplies">
+          </datalist>
+          <p class="error-text" data-error-for="label" hidden></p>
+        </div>
+
+        <!-- D. Amount -->
+        <div class="field">
+          <label for="amount">Amount <span class="req">*</span></label>
+          <div class="input-group">
+            <span class="prefix" aria-hidden="true">£</span>
+            <input class="input has-suffix num" id="amount" name="amount" type="text" inputmode="decimal" required
+                   placeholder="0.00" autocomplete="off" aria-describedby="amount-hint" data-testid="amount">
+            <span class="suffix">GBP</span>
+          </div>
+          <p class="hint" id="amount-hint">Pounds sterling, up to 2 decimal places.</p>
+          <p class="error-text" data-error-for="amount" hidden></p>
+        </div>
+
+        <!-- E. Description (Markdown) -->
+        <div class="field full">
+          <div class="md-head">
+            <label for="description">Description <span class="opt">(optional · Markdown supported)</span></label>
+            <div class="md-tabs" role="tablist" aria-label="Description editor">
+              <button type="button" role="tab" aria-selected="true" data-md-tab="write" aria-controls="description"><i data-lucide="pencil" class="icon icon-xs"></i>Write</button>
+              <button type="button" role="tab" aria-selected="false" data-md-tab="preview" aria-controls="md-preview"><i data-lucide="eye" class="icon icon-xs"></i>Preview</button>
+            </div>
+          </div>
+          <div class="md-toolbar" aria-label="Formatting" data-md-toolbar>
+            <button type="button" data-md="bold" title="Bold" aria-label="Bold"><i data-lucide="bold" class="icon icon-sm"></i></button>
+            <button type="button" data-md="italic" title="Italic" aria-label="Italic"><i data-lucide="italic" class="icon icon-sm"></i></button>
+            <button type="button" data-md="ul" title="Bulleted list" aria-label="Bulleted list"><i data-lucide="list" class="icon icon-sm"></i></button>
+            <button type="button" data-md="ol" title="Numbered list" aria-label="Numbered list"><i data-lucide="list-ordered" class="icon icon-sm"></i></button>
+            <button type="button" data-md="link" title="Link" aria-label="Link"><i data-lucide="link" class="icon icon-sm"></i></button>
+            <button type="button" data-md="code" title="Inline code" aria-label="Inline code"><i data-lucide="code" class="icon icon-sm"></i></button>
+          </div>
+          <textarea class="textarea" id="description" name="description" maxlength="5000" data-testid="description"
+                    placeholder="Describe the business purpose, e.g.&#10;**Client:** Acme Ltd&#10;- Quarterly review meeting&#10;- Lunch for 3 attendees"></textarea>
+          <div class="md-preview prose" id="md-preview" hidden aria-live="polite"></div>
+          <div class="md-head"><p class="hint">Use **bold**, *italic*, lists and links. HTML is stripped for security.</p><span class="counter" data-counter-for="description">0 / 5000</span></div>
+          <p class="error-text" data-error-for="description" hidden></p>
+        </div>
+      </div>
+
+      <div class="form-section-title mt-lg"><span class="n">2</span><h2>Receipt <span class="opt"><%= receiptRequired ? '(required)' : '(recommended)' %></span></h2></div>
+
+      <!-- F. Receipt upload -->
+      <div class="field">
+        <input type="file" id="receipt" name="receipt" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" class="sr-only" data-testid="receipt">
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-describedby="dz-hint" aria-label="Upload receipt">
+          <span class="dz-icon"><i data-lucide="cloud-upload" class="icon"></i></span>
+          <div><strong>Click to upload</strong> or drag and drop your receipt</div>
+          <div class="hint" id="dz-hint">JPG, JPEG, PNG or PDF · up to <%= maxUploadMb %> MB</div>
+        </div>
+        <div id="file-card" class="file-card" hidden>
+          <div class="file-thumb" id="file-thumb"></div>
+          <div class="file-meta">
+            <strong id="file-name" data-testid="file-name"></strong>
+            <span id="file-info"></span>
+          </div>
+          <div class="file-actions">
+            <button type="button" class="btn btn-sm" id="replace-file"><i data-lucide="replace" class="icon icon-sm"></i>Replace</button>
+            <button type="button" class="btn btn-sm btn-ghost" id="remove-file" aria-label="Remove file"><i data-lucide="trash-2" class="icon icon-sm"></i>Remove</button>
+          </div>
+        </div>
+        <div class="receipt-preview" id="receipt-preview" hidden><img id="receipt-preview-img" alt="Receipt preview"></div>
+        <p class="error-text" data-error-for="receipt" hidden></p>
+      </div>
+    </div>
+
+    <!-- G. Submit / Cancel -->
+    <div class="form-footer">
+      <div class="lock-note"><i data-lucide="lock" class="icon icon-xs"></i><span>Your username, the submission time and status are recorded automatically.</span></div>
+      <div class="btns">
+        <a href="/dashboard" class="btn" id="cancel-btn" data-testid="cancel">Cancel</a>
+        <button type="submit" class="btn btn-primary" id="submit-btn" data-testid="submit" data-loading-text="Submitting…">
+          <span class="spinner"></span><i data-lucide="send" class="icon icon-sm btn-icon-default"></i><span class="btn-label">Submit Expense</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <aside class="side-sticky">
+    <div class="card">
+      <div class="card-head"><h2>Summary</h2><span class="badge badge-warning"><i data-lucide="clock" class="icon icon-xs"></i>not-approved</span></div>
+      <div class="card-body">
+        <div class="preview-amount" id="sum-amount">£0.00</div>
+        <p class="muted" id="sum-label">Untitled expense</p>
+        <ul class="meta-list mt-sm">
+          <li><span>Expense date</span><span id="sum-date">—</span></li>
+          <li><span>Category</span><span id="sum-category">—</span></li>
+          <li><span>Receipt</span><span id="sum-receipt">None</span></li>
+          <li><span>Submitted by</span><span>@<%= currentUser.username %></span></li>
+          <li><span>Submitted at</span><span class="muted">On submission</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Tips</h2></div>
+      <div class="card-body">
+        <ul class="tips">
+          <li>Use a short, specific label such as “Client lunch”.</li>
+          <li>Make sure the total and date on the receipt are legible.</li>
+          <li>Explain the business purpose in the description.</li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+</form>
+
+<%- include('../partials/app-end', { scripts: ['/vendor/marked/marked.umd.js', '/vendor/dompurify/purify.min.js', '/static/js/add-expense.js'] }) %>

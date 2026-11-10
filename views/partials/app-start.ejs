@@ -1,0 +1,67 @@
+<%- include('head') %>
+<body>
+<%
+  const u = currentUser;
+  const initials = (u.display_name || u.username).split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const nav = [
+    { key: 'dashboard', href: '/dashboard', icon: 'layout-dashboard', label: 'Dashboard' },
+    { key: 'add', href: '/expenses/new', icon: 'receipt', label: 'Add Expense' },
+    { key: 'analytics', href: '/analytics', icon: 'chart-pie', label: 'Analytics' },
+  ];
+%>
+<a class="sr-only" href="#main">Skip to content</a>
+<div class="shell" id="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Primary">
+    <a class="brand" href="/dashboard">
+      <span class="brand-mark"><i data-lucide="wallet" class="icon"></i></span>
+      <span>Expense Tracker<small>Business expenses</small></span>
+    </a>
+
+    <a href="/expenses/new" class="btn btn-primary btn-block sidebar-cta" data-testid="sidebar-add-expense">
+      <i data-lucide="plus" class="icon icon-sm"></i> Add Expense
+    </a>
+
+    <div class="nav-label">Workspace</div>
+    <nav class="nav">
+      <% nav.forEach(n => { %>
+        <a href="<%= n.href %>" class="<%= active === n.key ? 'active' : '' %>" <%= active === n.key ? 'aria-current=page' : '' %>>
+          <i data-lucide="<%= n.icon %>" class="icon"></i><%= n.label %>
+        </a>
+      <% }) %>
+    </nav>
+
+    <div class="nav-label">Account</div>
+    <nav class="nav">
+      <a href="/profile" class="<%= active === 'profile' ? 'active' : '' %>"><i data-lucide="user-round-cog" class="icon"></i>Profile settings</a>
+      <button type="button" data-theme-toggle><i data-lucide="moon" class="icon theme-icon-dark"></i><i data-lucide="sun" class="icon theme-icon-light" hidden></i><span class="theme-label">Dark mode</span></button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <span class="avatar">
+          <% if (u.avatar_path) { %><img src="/profile/avatar?v=<%= encodeURIComponent(u.avatar_path) %>" alt=""><% } else { %><%= initials %><% } %>
+        </span>
+        <span class="who">
+          <strong><%= u.display_name %></strong>
+          <span>@<%= u.username %><% if (u.role === 'manager') { %> · Manager<% } %></span>
+        </span>
+      </div>
+      <form method="post" action="/logout" data-confirm="Sign out?" data-confirm-text="You will need to sign in again to add expenses." data-confirm-ok="Sign out">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="nav"><button type="submit" data-testid="logout"><i data-lucide="log-out" class="icon"></i>Sign out</button></div>
+      </form>
+    </div>
+  </aside>
+  <div class="overlay" data-nav-close></div>
+
+  <div class="main">
+    <header class="topbar" id="topbar">
+      <button class="btn btn-ghost btn-icon menu-btn" type="button" data-nav-open aria-label="Open navigation"><i data-lucide="menu" class="icon"></i></button>
+      <div class="crumbs"><span>Expense Tracker</span><i data-lucide="chevron-right" class="icon icon-xs"></i><strong><%= title %></strong></div>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost btn-icon btn-sm" type="button" data-theme-toggle aria-label="Toggle dark mode"><i data-lucide="moon" class="icon icon-sm theme-icon-dark"></i><i data-lucide="sun" class="icon icon-sm theme-icon-light" hidden></i></button>
+      <% if (active !== 'add') { %>
+        <a href="/expenses/new" class="btn btn-primary btn-sm" data-testid="topbar-add-expense"><i data-lucide="plus" class="icon icon-sm"></i>Add Expense</a>
+      <% } %>
+    </header>
+    <main class="content" id="main" tabindex="-1">

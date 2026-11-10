@@ -1,0 +1,91 @@
+<%- include('partials/app-start') %>
+<%
+  const v = (k) => (typeof q[k] === 'string' ? q[k] : '');
+  const fmtMonth = (ym) => new Date(ym + '-01T00:00:00Z').toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+%>
+<div class="page-head">
+  <div>
+    <h1>Expense analytics</h1>
+    <p>Explore your submitted expenses. All figures are calculated live from the database.</p>
+  </div>
+  <div class="page-actions">
+    <a href="/analytics/export.csv" class="btn" id="export-btn" data-testid="export-csv"><i data-lucide="download" class="icon icon-sm"></i>Export CSV</a>
+  </div>
+</div>
+
+<form class="card" id="filter-form" method="get" action="/analytics" novalidate>
+  <div class="card-body">
+    <div class="filters">
+      <div class="field">
+        <label for="f-from">From date</label>
+        <input class="input" type="date" id="f-from" name="from" value="<%= v('from') %>">
+      </div>
+      <div class="field">
+        <label for="f-to">To date</label>
+        <input class="input" type="date" id="f-to" name="to" value="<%= v('to') %>">
+      </div>
+      <div class="field">
+        <label for="f-category">Category</label>
+        <select class="select" id="f-category" name="category">
+          <option value="">All categories</option>
+          <% categories.forEach(c => { %><option value="<%= c %>" <%= v('category') === c ? 'selected' : '' %>><%= c %></option><% }) %>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-min">Min amount (£)</label>
+        <input class="input num" type="number" min="0" step="0.01" id="f-min" name="min" value="<%= v('min') %>" placeholder="0.00">
+      </div>
+      <div class="field">
+        <label for="f-max">Max amount (£)</label>
+        <input class="input num" type="number" min="0" step="0.01" id="f-max" name="max" value="<%= v('max') %>" placeholder="Any">
+      </div>
+      <div class="field">
+        <label for="f-month">Submission month</label>
+        <select class="select" id="f-month" name="month">
+          <option value="">Any month</option>
+          <% months.forEach(m => { %><option value="<%= m %>" <%= v('month') === m ? 'selected' : '' %>><%= fmtMonth(m) %></option><% }) %>
+        </select>
+      </div>
+    </div>
+    <div class="inline-actions mt-sm">
+      <button class="btn btn-primary btn-sm" type="submit"><i data-lucide="filter" class="icon icon-sm"></i>Apply filters</button>
+      <a class="btn btn-ghost btn-sm" href="/analytics" id="reset-filters"><i data-lucide="rotate-ccw" class="icon icon-sm"></i>Reset</a>
+      <span class="hint" id="filter-error" role="alert"></span>
+    </div>
+    <div class="active-filters" id="active-filters"></div>
+  </div>
+</form>
+
+<section class="grid grid-4 mt" aria-label="Filtered summary">
+  <div class="card stat"><div class="stat-top"><span>Matching expenses</span><span class="stat-icon"><i data-lucide="files" class="icon icon-sm"></i></span></div><div class="stat-value" data-stat="count"><span class="skeleton sk-value"></span></div><div class="stat-sub">Records in selection</div></div>
+  <div class="card stat"><div class="stat-top"><span>Total amount</span><span class="stat-icon"><i data-lucide="pound-sterling" class="icon icon-sm"></i></span></div><div class="stat-value" data-stat="total"><span class="skeleton sk-value"></span></div><div class="stat-sub">GBP</div></div>
+  <div class="card stat"><div class="stat-top"><span>Average</span><span class="stat-icon"><i data-lucide="divide" class="icon icon-sm"></i></span></div><div class="stat-value" data-stat="average"><span class="skeleton sk-value"></span></div><div class="stat-sub">Per expense</div></div>
+  <div class="card stat"><div class="stat-top"><span>Largest</span><span class="stat-icon"><i data-lucide="trending-up" class="icon icon-sm"></i></span></div><div class="stat-value" data-stat="largest"><span class="skeleton sk-value"></span></div><div class="stat-sub">Single expense</div></div>
+</section>
+
+<section class="grid grid-main mt">
+  <div class="card">
+    <div class="card-head"><div><h2>Monthly overview</h2><p>Total by month of expense date</p></div></div>
+    <div class="card-body"><div class="chart-box" id="monthly-box"><div class="skeleton sk-chart"></div></div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div><h2>Category split</h2><p>Share of filtered total</p></div></div>
+    <div class="card-body" id="category-body">
+      <div class="donut-wrap"><div class="donut-box"><div class="skeleton sk-chart"></div></div><div><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="card mt">
+  <div class="card-head"><div><h2>Category breakdown</h2><p>Aggregated totals for the current filters</p></div></div>
+  <div class="card-body">
+    <div class="table-wrap">
+      <table class="table" id="category-table">
+        <thead><tr><th>Category</th><th class="r">Expenses</th><th class="r">Total</th><th class="r">Average</th><th>Share</th></tr></thead>
+        <tbody><tr><td colspan="5"><div class="skeleton sk-line"></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/app-end', { scripts: ['/vendor/chart.js/chart.umd.min.js', '/static/js/charts.js', '/static/js/analytics.js'] }) %>

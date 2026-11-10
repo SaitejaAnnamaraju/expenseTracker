@@ -1,0 +1,65 @@
+<%- include('../partials/head') %>
+<body>
+<%
+  const err = (k) => errors[k] ? `<p class="error-text" id="${k}-error"><i data-lucide="circle-alert" class="icon icon-xs"></i>${errors[k].replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}</p>` : '';
+  const inv = (k) => errors[k] ? 'invalid' : '';
+%>
+<div class="auth">
+  <%- include('../partials/auth-aside') %>
+  <main class="auth-main">
+    <button class="btn btn-ghost btn-icon btn-sm auth-theme" type="button" data-theme-toggle aria-label="Toggle dark mode"><i data-lucide="moon" class="icon icon-sm theme-icon-dark"></i><i data-lucide="sun" class="icon icon-sm theme-icon-light" hidden></i></button>
+    <div class="auth-card">
+      <h1>Create your account</h1>
+      <p class="sub">Start submitting expenses with receipts in minutes.</p>
+
+      <% if (Object.keys(errors).length) { %>
+        <div class="alert alert-error" role="alert"><i data-lucide="circle-alert" class="icon icon-sm"></i><span>Please fix the highlighted fields.</span></div>
+      <% } %>
+
+      <form method="post" action="/register" novalidate data-validate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field">
+          <label for="display_name">Full name</label>
+          <input class="input <%= inv('display_name') %>" id="display_name" name="display_name" autocomplete="name" required minlength="2" maxlength="100" value="<%= values.display_name || '' %>">
+          <%- err('display_name') %>
+        </div>
+        <div class="field">
+          <label for="username">Username</label>
+          <input class="input <%= inv('username') %>" id="username" name="username" autocomplete="username" required minlength="3" maxlength="50" pattern="[A-Za-z0-9_.\-]{3,50}" value="<%= values.username || '' %>">
+          <% if (!errors.username) { %><p class="hint">3–50 characters: letters, numbers, dot, dash or underscore.</p><% } %>
+          <%- err('username') %>
+        </div>
+        <div class="field">
+          <label for="email">Work email</label>
+          <input class="input <%= inv('email') %>" id="email" name="email" type="email" autocomplete="email" required maxlength="255" value="<%= values.email || '' %>">
+          <%- err('email') %>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-group">
+            <input class="input has-toggle <%= inv('password') %>" id="password" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128" data-strength="pw-meter">
+            <button type="button" class="toggle-pw" data-toggle-password="password" aria-label="Show password" aria-pressed="false"><i data-lucide="eye" class="icon icon-sm"></i></button>
+          </div>
+          <div class="pw-meter" aria-hidden="true"><span id="pw-meter"></span></div>
+          <% if (!errors.password) { %><p class="hint">At least 8 characters, including a letter and a number.</p><% } %>
+          <%- err('password') %>
+        </div>
+        <div class="field">
+          <label for="confirm_password">Confirm password</label>
+          <div class="input-group">
+            <input class="input has-toggle <%= inv('confirm_password') %>" id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required data-match="password">
+            <button type="button" class="toggle-pw" data-toggle-password="confirm_password" aria-label="Show password" aria-pressed="false"><i data-lucide="eye" class="icon icon-sm"></i></button>
+          </div>
+          <%- err('confirm_password') %>
+        </div>
+        <div class="field">
+          <label class="check"><input type="checkbox" name="terms" required <%= values.terms ? 'checked' : '' %>> I will only submit genuine business expenses.</label>
+          <%- err('terms') %>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" data-loading-text="Creating account…"><span class="spinner"></span><span class="btn-label">Create account</span></button>
+      </form>
+      <p class="auth-foot">Already have an account? <a href="/login">Sign in</a></p>
+    </div>
+  </main>
+</div>
+<%- include('../partials/foot') %>

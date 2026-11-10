@@ -1,0 +1,22 @@
+<% if (locals.currentUser) { %>
+<%- include('partials/app-start') %>
+<% } else { %>
+<%- include('partials/head') %>
+<body><main class="content">
+<% } %>
+<div class="error-page">
+  <div>
+    <div class="code"><%= status %></div>
+    <h1><%= status === 404 ? 'Page not found' : status === 403 ? 'Request blocked' : 'Something went wrong' %></h1>
+    <p class="muted mt-sm"><%= message %></p>
+    <div class="inline-actions mt-lg center">
+      <a class="btn btn-primary" href="<%= locals.currentUser ? '/dashboard' : '/login' %>"><i data-lucide="arrow-left" class="icon icon-sm"></i>Back to <%= locals.currentUser ? 'dashboard' : 'sign in' %></a>
+    </div>
+  </div>
+</div>
+<% if (locals.currentUser) { %>
+<%- include('partials/app-end') %>
+<% } else { %>
+</main>
+<%- include('partials/foot') %>
+<% } %>

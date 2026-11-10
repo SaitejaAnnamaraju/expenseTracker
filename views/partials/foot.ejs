@@ -1,0 +1,11 @@
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<% if (locals.flash) { %>
+<script type="application/json" id="flash-data"><%- JSON.stringify(flash).replace(/</g, '\\u003c') %></script>
+<% } %>
+<script src="/vendor/lucide/lucide.min.js"></script>
+<script src="/static/js/app.js"></script>
+<% (typeof scripts !== 'undefined' ? scripts : []).forEach(function (s) { %>
+<script src="<%= s %>"></script>
+<% }) %>
+</body>
+</html>

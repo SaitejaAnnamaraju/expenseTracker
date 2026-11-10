@@ -1,0 +1,84 @@
+<%- include('partials/app-start') %>
+
+<div class="page-head">
+  <div>
+    <h1>Good <span id="greeting">day</span>, <%= currentUser.display_name.split(' ')[0] %></h1>
+    <p>Here is an overview of the business expenses you have submitted.</p>
+  </div>
+  <div class="page-actions">
+    <a href="/analytics" class="btn"><i data-lucide="chart-pie" class="icon icon-sm"></i>View analytics</a>
+    <a href="/expenses/new" class="btn btn-primary" data-testid="dashboard-add-expense"><i data-lucide="plus" class="icon icon-sm"></i>Add Expense</a>
+  </div>
+</div>
+
+<!-- Summary cards (filled from /api/dashboard - real MySQL aggregates) -->
+<section class="grid grid-4" aria-label="Summary">
+  <div class="card stat">
+    <div class="stat-top"><span>Total expenses</span><span class="stat-icon"><i data-lucide="files" class="icon icon-sm"></i></span></div>
+    <div class="stat-value" data-stat="count"><span class="skeleton sk-value"></span></div>
+    <div class="stat-sub">Submitted to date</div>
+  </div>
+  <div class="card stat">
+    <div class="stat-top"><span>Total amount</span><span class="stat-icon"><i data-lucide="pound-sterling" class="icon icon-sm"></i></span></div>
+    <div class="stat-value" data-stat="total"><span class="skeleton sk-value"></span></div>
+    <div class="stat-sub">All submissions, GBP</div>
+  </div>
+  <div class="card stat">
+    <div class="stat-top"><span>This month</span><span class="stat-icon"><i data-lucide="calendar-days" class="icon icon-sm"></i></span></div>
+    <div class="stat-value" data-stat="thisMonthCount"><span class="skeleton sk-value"></span></div>
+    <div class="stat-sub" data-stat="thisMonthTotal">&nbsp;</div>
+  </div>
+  <div class="card stat">
+    <div class="stat-top"><span>Average expense</span><span class="stat-icon"><i data-lucide="divide" class="icon icon-sm"></i></span></div>
+    <div class="stat-value" data-stat="average"><span class="skeleton sk-value"></span></div>
+    <div class="stat-sub" data-stat="largest">&nbsp;</div>
+  </div>
+</section>
+
+<section class="grid grid-main mt">
+  <div class="card">
+    <div class="card-head">
+      <div><h2>Monthly spending</h2><p>Total by expense date, last 12 months</p></div>
+    </div>
+    <div class="card-body">
+      <div class="chart-box" id="monthly-box"><div class="skeleton sk-chart"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div><h2>By category</h2><p>Share of total amount</p></div>
+    </div>
+    <div class="card-body" id="category-body">
+      <div class="donut-wrap">
+        <div class="donut-box"><div class="skeleton sk-chart"></div></div>
+        <div><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="grid grid-2 mt">
+  <div class="card">
+    <div class="card-head">
+      <div><h2>Recent activity</h2><p>Sign-ins, submissions and account changes</p></div>
+    </div>
+    <div class="card-body" id="activity-body">
+      <div class="skeleton sk-line"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div><div class="skeleton sk-line"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div><h2>Quick actions</h2><p>Common tasks</p></div></div>
+    <div class="card-body">
+      <ul class="activity">
+        <li><span class="act-icon acc"><i data-lucide="receipt" class="icon icon-sm"></i></span><div class="act-body"><strong><a href="/expenses/new">Submit a new expense</a></strong><span>Add the details and attach a receipt</span></div></li>
+        <li><span class="act-icon acc"><i data-lucide="sliders-horizontal" class="icon icon-sm"></i></span><div class="act-body"><strong><a href="/analytics">Filter and analyse spending</a></strong><span>By date range, category, amount or month</span></div></li>
+        <li><span class="act-icon acc"><i data-lucide="file-spreadsheet" class="icon icon-sm"></i></span><div class="act-body"><strong><a href="/analytics/export.csv" data-testid="dashboard-export">Export to CSV</a></strong><span>Download all of your submitted records</span></div></li>
+        <li><span class="act-icon acc"><i data-lucide="user-round-cog" class="icon icon-sm"></i></span><div class="act-body"><strong><a href="/profile">Update your profile</a></strong><span>Display name, password and picture</span></div></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/app-end', { scripts: ['/vendor/chart.js/chart.umd.min.js', '/static/js/charts.js', '/static/js/dashboard.js'] }) %>

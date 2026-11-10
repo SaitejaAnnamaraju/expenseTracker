@@ -1,0 +1,46 @@
+<%- include('../partials/head') %>
+<body>
+<div class="auth">
+  <%- include('../partials/auth-aside') %>
+  <main class="auth-main">
+    <button class="btn btn-ghost btn-icon btn-sm auth-theme" type="button" data-theme-toggle aria-label="Toggle dark mode"><i data-lucide="moon" class="icon icon-sm theme-icon-dark"></i><i data-lucide="sun" class="icon icon-sm theme-icon-light" hidden></i></button>
+    <div class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="sub">Sign in to submit and track your business expenses.</p>
+
+      <% if (error) { %>
+        <div class="alert alert-error" role="alert" data-testid="login-error"><i data-lucide="circle-alert" class="icon icon-sm"></i><span><%= error %></span></div>
+      <% } %>
+
+      <form method="post" action="/login" novalidate data-validate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field">
+          <label for="username">Username or email</label>
+          <div class="input-group">
+            <i data-lucide="user" class="icon icon-sm lead-icon"></i>
+            <input class="input <%= error ? 'invalid' : '' %>" id="username" name="username" autocomplete="username" required maxlength="255" value="<%= values.username || '' %>" autofocus>
+          </div>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-group">
+            <i data-lucide="lock" class="icon icon-sm lead-icon"></i>
+            <input class="input has-toggle <%= error ? 'invalid' : '' %>" id="password" name="password" type="password" autocomplete="current-password" required maxlength="128">
+            <button type="button" class="toggle-pw" data-toggle-password="password" aria-label="Show password" aria-pressed="false"><i data-lucide="eye" class="icon icon-sm"></i></button>
+          </div>
+        </div>
+        <div class="auth-row">
+          <label class="check"><input type="checkbox" name="remember" id="remember"> Remember me for 30 days</label>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" data-loading-text="Signing in…"><span class="spinner"></span><span class="btn-label">Sign in</span></button>
+      </form>
+
+      <p class="auth-foot">New here? <a href="/register">Create an account</a></p>
+
+      <div class="demo-accounts">
+        <strong>Test accounts</strong> — <code>user1</code> / <code>p455w0rd</code> &nbsp;·&nbsp; <code>manager1</code> / <code>p455w0rd</code>
+      </div>
+    </div>
+  </main>
+</div>
+<%- include('../partials/foot') %>
