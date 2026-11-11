@@ -10,6 +10,10 @@ function required(name) {
 
 const ROOT = path.join(__dirname, '..', '..');
 const isProd = process.env.NODE_ENV === 'production';
+// On Vercel the project folder is read-only; only /tmp is writable (and it is wiped
+// between cold starts), so uploads go there. STORAGE_DIR overrides it anywhere.
+const STORAGE = process.env.STORAGE_DIR
+  || (process.env.VERCEL ? path.join('/tmp', 'storage') : path.join(ROOT, 'storage'));
 
 module.exports = {
   isProd,
@@ -25,8 +29,8 @@ module.exports = {
   },
   paths: {
     root: ROOT,
-    receipts: path.join(ROOT, 'storage', 'receipts'),
-    avatars: path.join(ROOT, 'storage', 'avatars'),
+    receipts: path.join(STORAGE, 'receipts'),
+    avatars: path.join(STORAGE, 'avatars'),
   },
   uploads: {
     maxReceiptBytes: (Number(process.env.MAX_UPLOAD_MB) || 5) * 1024 * 1024,

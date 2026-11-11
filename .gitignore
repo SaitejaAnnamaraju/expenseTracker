@@ -5,3 +5,5 @@ storage/receipts/*
 storage/avatars/*
 !storage/avatars/.gitkeep
 *.log
+.env.*
+!.env.example
