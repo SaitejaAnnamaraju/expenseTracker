@@ -94,7 +94,14 @@ app.use((req, res, next) => {
 
 // ---------------------------------------------------------------- Routes
 app.get('/healthz', async (req, res) => {
-  try { await pool.query('SELECT 1'); res.json({ ok: true, db: 'up' }); } catch { res.status(503).json({ ok: false, db: 'down' }); }
+  try {
+    await pool.query('SELECT 1');
+    res.json({ ok: true, db: 'up' });
+  } catch (e) {
+    // Log details for the host's logs; expose only the error code (no hosts/secrets).
+    console.error('healthz: database check failed:', e.code || '', e.message);
+    res.status(503).json({ ok: false, db: 'down', code: e.code || 'UNKNOWN' });
+  }
 });
 app.use(require('./routes/auth'));
 app.use(require('./routes/dashboard'));
